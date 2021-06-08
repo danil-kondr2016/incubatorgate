@@ -1,0 +1,9 @@
+all: incubator_gate
+
+incubator_gate: incubator_gate.c
+	gcc -g incubator_gate.c -o incubator_gate
+
+clean:
+	rm incubator_gate
+
+
