@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <fcntl.h>
 #include <termios.h>
@@ -11,6 +12,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
 
 #define MAX_REQUEST_BUFFER_LENGTH 8192
 #define MAX_RESPONSE_BUFFER_LENGTH 65536
@@ -38,6 +40,7 @@ int short_pause();
 int open_serial(const char*);
 
 void process_command(char*, int);
+void parse_url(char*, int);
 
 int main(int argc, char** argv) {
   int fd_listen, fd_connect = -1;
@@ -160,11 +163,19 @@ int recv_cmd(int fd) {
     process_command(request_buffer + header_size, len_buf - header_size);
   } else if (strstr(headers[0], "GET /control")) {
     snprintf(response_buffer, MAX_RESPONSE_BUFFER_LENGTH,
-             "HTTP/1.1 200 OK\r\n"
+             "HTTP/1.1 200 ok\r\n"
              "Server: IncubatorGate\r\n"
              "Content-Type: text/html; charset=utf-8\r\n"
              "Content-Length: 12\r\n"
              "\r\nmethod_get\r\n");
+  } else if (strstr(headers[0], "GET /archive")) {
+    parse_url(headers[0] + 4, strlen(headers[0]) - 4);
+    snprintf(response_buffer, MAX_RESPONSE_BUFFER_LENGTH,
+               "HTTP/1.1 200 ok\r\n"
+               "Server: IncubatorGate\r\n"
+               "Content-Type: text/html; charset=utf-8\r\n"
+               "Content-Length: 14\r\n"
+               "\r\narchive_test\r\n");
   } else {
     snprintf(response_buffer, MAX_RESPONSE_BUFFER_LENGTH,
             "HTTP/1.1 404 Not Found\r\n"
@@ -233,4 +244,37 @@ void process_command(char* buffer, int len_buf) {
            ret, read_buf);
 }
 
+void parse_url(char* url, int len) {
+  bool is_form = false;
 
+  char key[1024] = {0};
+  char value[1024] = {0};
+
+  bool is_key = true;
+  int key_cnt = 0;
+  int value_cnt = 0;
+
+  for (int i = 0; i < len; i++) {
+    if (url[i] == '?')
+      is_form = true;
+    if (!is_form)
+      continue;
+
+    if (url[i] == '=') {
+      key[key_cnt] = '\0';
+      is_key = false;
+    } else if (url[i] == '&' || i == len-1) {
+      value[value_cnt] = '\0';
+      is_key = true;
+      printf("%s %s\n", key, value);
+      key_cnt = 0;
+      value_cnt = 0;
+    }
+
+    if (is_key) {
+      key[key_cnt++] = url[i];
+    } else {
+      value[value_cnt++] = url[i];
+    }
+  }
+}
