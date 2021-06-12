@@ -12,7 +12,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-
+#include <sys/ioctl.h>
+#include <curl/curl.h>
 
 #define MAX_REQUEST_BUFFER_LENGTH 8192
 #define MAX_RESPONSE_BUFFER_LENGTH 65536
@@ -40,7 +41,7 @@ int short_pause();
 int open_serial(const char*);
 
 void process_command(char*, int);
-void parse_url(char*, int);
+void process_archive(char*, int);
 
 int main(int argc, char** argv) {
   int fd_listen, fd_connect = -1;
@@ -50,7 +51,6 @@ int main(int argc, char** argv) {
   address.sin_family = AF_INET;
   address.sin_port = htons(80);
   address.sin_addr.s_addr = htonl(INADDR_ANY);
-
 
   if (argc >= 2) {
     if (strcmp(argv[1], "-h") == 0) {
@@ -169,7 +169,7 @@ int recv_cmd(int fd) {
              "Content-Length: 12\r\n"
              "\r\nmethod_get\r\n");
   } else if (strstr(headers[0], "GET /archive")) {
-    parse_url(headers[0] + 4, strlen(headers[0]) - 4);
+    process_archive(headers[0] + 4, strlen(headers[0]) - 4);
     snprintf(response_buffer, MAX_RESPONSE_BUFFER_LENGTH,
                "HTTP/1.1 200 ok\r\n"
                "Server: IncubatorGate\r\n"
@@ -212,6 +212,7 @@ int open_serial(const char* dev_name) {
   cfsetospeed(&io_parameters, B9600);
 
   cfmakeraw(&io_parameters);
+  io_parameters.c_cflag &= ~CRTSCTS;
   
   io_parameters.c_cc[VTIME] = 20;
   io_parameters.c_cc[VMIN] = 0;
@@ -244,37 +245,65 @@ void process_command(char* buffer, int len_buf) {
            ret, read_buf);
 }
 
-void parse_url(char* url, int len) {
+void process_archive(char* url, int len) {
   bool is_form = false;
 
+  char address[1024] = {0};
   char key[1024] = {0};
   char value[1024] = {0};
 
   bool is_key = true;
   int key_cnt = 0;
   int value_cnt = 0;
+  CURL* curl;
+
+  curl = curl_easy_init();
+  snprintf(address, 1024, "http://185.26.121.126/archive/insert.php");
 
   for (int i = 0; i < len; i++) {
-    if (url[i] == '?')
+    if (url[i] == '?') {
+      strcat(address, "?");
       is_form = true;
+      continue;
+    }
     if (!is_form)
       continue;
 
     if (url[i] == '=') {
       key[key_cnt] = '\0';
       is_key = false;
-    } else if (url[i] == '&' || i == len-1) {
+    } else if (url[i] == '&') {
       value[value_cnt] = '\0';
       is_key = true;
-      printf("%s %s\n", key, value);
+      
+      strcat(address, key);
+      strcat(address, "=");
+      strcat(address, value);
+      strcat(address, "&");
+
       key_cnt = 0;
       value_cnt = 0;
-    }
-
-    if (is_key) {
-      key[key_cnt++] = url[i];
+    } else if (url[i] == ' ') {
+      key[key_cnt] = '\0';
+      value[value_cnt] = '\0';
+      
+      strcat(address, key);
+      strcat(address, "=");
+      strcat(address, value);
+     
+      is_form = false;
+      break;
     } else {
-      value[value_cnt++] = url[i];
+      if (is_key) {
+        key[key_cnt++] = url[i];
+      } else {
+        value[value_cnt++] = url[i];
+      }
     }
   }
+
+  curl_easy_setopt(curl, CURLOPT_URL, address);
+  curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
+  curl_easy_perform(curl);
+  curl_easy_cleanup(curl);
 }
