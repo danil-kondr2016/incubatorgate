@@ -33,7 +33,9 @@ public class Main {
 	        SerialPort port = getSerialPort();
             if (port != null) {
                 port.openPort();
-                port.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 2000, 2000);
+                port.setComPortTimeouts(
+                    SerialPort.TIMEOUT_WRITE_BLOCKING
+                  | SerialPort.TIMEOUT_READ_BLOCKING, 2000, 2000);
             } else {
                 System.out.println("Error: serial port not found");
                 System.exit(0);
