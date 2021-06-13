@@ -46,7 +46,8 @@ public class Main {
             ServerSocket serverSocket = new ServerSocket(80);
             while (true) {
                 System.out.println("Waiting socket...");
-                new Server(serverSocket.accept(), port);
+                Server server = new Server(serverSocket.accept(), port);
+                server.start();
             }
         } catch (Exception e) {
 	        e.printStackTrace();

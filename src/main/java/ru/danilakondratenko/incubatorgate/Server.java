@@ -32,8 +32,6 @@ public class Server extends Thread {
         this.s = s;
         this.port = port;
         this.setDaemon(true);
-        this.start();
-
         System.out.println("Accepted: " + s.getLocalAddress() + " " + s.getLocalPort());
     }
 
