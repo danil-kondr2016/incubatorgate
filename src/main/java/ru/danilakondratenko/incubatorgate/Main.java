@@ -50,14 +50,6 @@ public class Main {
                 System.exit(0);
             }
 
-            //requestor = new Requestor(port);
-
-            /*ServerSocket serverSocket = new ServerSocket(80);*/
-            /*while (true) {
-                System.out.println("Waiting socket...");
-                Server server = new Server(serverSocket.accept(), port);
-                server.start();
-            }*/
             HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
             server.createContext("/", new RequestHandler());
             server.createContext("/index.html", new RequestHandler());
@@ -80,6 +72,16 @@ public class Main {
                         "<body>\r\n" +
                         "<h1 align=\"center\">The IoT-incubator</h1>\r\n" +
                         "<p align=\"center\">Created by Kondratenko Daniel in 2021</p>\r\n" +
+                        "<hr>\r\n" +
+                        FOOTER +
+                        "</body>\r\n" +
+                        "</html>\r\n";
+        public static final String ERROR_404_PAGE =
+                DOCTYPE_HTML +
+                        "<html>\r\n" +
+                        "<head><title>Error</title></head>\r\n" +
+                        "<body>\r\n" +
+                        "<h1 align=\"center\">Error 404: not found</h1>\r\n" +
                         "<hr>\r\n" +
                         FOOTER +
                         "</body>\r\n" +
@@ -109,7 +111,7 @@ public class Main {
 
                     port.writeBytes(reqBuf, reqBuf.length);
                     byte[] respBuf = new byte[port.bytesAvailable()];
-                    port.readBytes(respBuf, respBuf.length);
+                    System.out.println("" + port.readBytes(respBuf, respBuf.length) + ", " + respBuf.length);
 
                     answerBuf = respBuf;
                 }
@@ -117,12 +119,10 @@ public class Main {
                 httpExchange.sendResponseHeaders(200, answerBuf.length);
                 os.write(answerBuf);
             } else {
-                answerBuf = "Error 404.\r\n".getBytes();
+                answerBuf = ERROR_404_PAGE.getBytes();
                 httpExchange.sendResponseHeaders(404, answerBuf.length);
                 os.write(answerBuf);
             }
-
-
             os.flush();
             os.close();
         }
