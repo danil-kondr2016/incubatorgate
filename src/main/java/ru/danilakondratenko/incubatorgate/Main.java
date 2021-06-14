@@ -47,7 +47,7 @@ public class Main {
                 System.exit(0);
             }
 
-            HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
             server.createContext("/", new HttpRequestHandler());
             server.createContext("/index.html", new HttpRequestHandler());
             server.createContext("/control", new HttpRequestHandler());
