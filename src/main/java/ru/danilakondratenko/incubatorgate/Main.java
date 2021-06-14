@@ -44,7 +44,7 @@ public class Main {
                 port.openPort();
                 port.setComPortTimeouts(
                     SerialPort.TIMEOUT_WRITE_BLOCKING
-                  | SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 2000, 2000);
+                  | SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 0, 0);
             } else {
                 System.out.println("Error: serial port not found");
                 System.exit(0);
@@ -110,9 +110,16 @@ public class Main {
                     is.read(reqBuf);
 
                     port.writeBytes(reqBuf, reqBuf.length);
+                    InputStream port_is = port.getInputStream();
                     byte[] respBuf = new byte[512];
+                    int n = 0, inc = 0;
+                    while (inc != -1) {
+                        inc = port_is.read();
+                        if (inc != -1)
+                            respBuf[n++] = (byte)inc;
+                    }
                     System.out.println("" +
-                            port.readBytes(respBuf, respBuf.length) + ", " + respBuf.length);
+                            port.readBytes(respBuf, n) + ", " + respBuf.length);
 
                     answerBuf = respBuf;
                 }
