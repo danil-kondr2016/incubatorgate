@@ -2,9 +2,6 @@ package ru.danilakondratenko.incubatorgate;
 
 import com.fazecast.jSerialComm.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class Requestor {
@@ -27,7 +24,7 @@ public class Requestor {
                 Requestor.READ_TIMEOUT, 0);
     }
 
-    public int makeRequest(byte[] reqBuf, byte[] respBuf) {
+    public synchronized int makeRequest(byte[] reqBuf, byte[] respBuf) {
         try {
             System.out.println(new String(reqBuf));
             this.port.writeBytes(reqBuf, reqBuf.length);
@@ -38,7 +35,7 @@ public class Requestor {
         }
     }
 
-    public int makeRequest(String reqStr, byte[] respBuf) {
+    public synchronized int makeRequest(String reqStr, byte[] respBuf) {
         try {
             return makeRequest(reqStr.getBytes("UTF-8"), respBuf);
         } catch (Exception e) {
@@ -47,7 +44,7 @@ public class Requestor {
         }
     }
 
-    public IncubatorState requestState() {
+    public synchronized IncubatorState requestState() {
         byte[] respBytes = new byte[LEN_BYTES];
         int respLen = makeRequest("request_state\r\n", respBytes);
         assert respLen > 0;
@@ -58,7 +55,7 @@ public class Requestor {
         return result;
     }
 
-    public IncubatorConfig requestConfig() {
+    public synchronized IncubatorConfig requestConfig() {
         byte[] respBytes = new byte[LEN_BYTES];
         int respLen = makeRequest("request_config\r\n", respBytes);
         assert respLen > 0;

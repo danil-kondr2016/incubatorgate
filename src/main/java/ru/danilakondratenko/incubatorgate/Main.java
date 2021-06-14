@@ -25,7 +25,7 @@ public class Main {
         }
         int i = 0;
         for (SerialPort port : ports) {
-            System.out.println("[" + i + "]" + port.getSystemPortName());
+            System.out.println("[" + i + "] " + port.getSystemPortName());
             i++;
         }
 
@@ -41,6 +41,7 @@ public class Main {
 	        String portDescriptor = getSerialPortDescriptor();
             if (portDescriptor != null) {
                 requestor = new Requestor(portDescriptor);
+                new Archiver(requestor);
             } else {
                 System.out.println("Error: serial port not found");
                 System.exit(0);
