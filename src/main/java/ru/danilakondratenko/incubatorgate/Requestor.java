@@ -2,125 +2,68 @@ package ru.danilakondratenko.incubatorgate;
 
 import com.fazecast.jSerialComm.*;
 
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.util.Arrays;
-import java.util.Date;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 
-public class Requestor extends Thread {
-    private static final String INCUBATOR_ARCHIVE_ADDRESS = "185.26.121.126";
+public class Requestor {
+    public static final int BAUDRATE = 9600;
+    public static final int READ_TIMEOUT = 200;
+    public static final int STOP_BIT = 1;
+    public static final int BYTE_FRAME = 8 + 1 + STOP_BIT;
+    public static final int LEN_BYTES = (READ_TIMEOUT * (BAUDRATE / BYTE_FRAME)) / 1000;
 
+    private String portDescriptor;
     private SerialPort port;
-    private long lastRequestTime;
 
-    private IncubatorData data;
-
-    Requestor(SerialPort port) {
-        this.port = port;
-        this.lastRequestTime = System.currentTimeMillis();
-
-        data = new IncubatorData();
-
-        this.setDaemon(true);
-        this.start();
+    Requestor(String portDescriptor) {
+        this.portDescriptor = portDescriptor;
+        this.port = SerialPort.getCommPort(this.portDescriptor);
+        if (!this.port.isOpen())
+            this.port.openPort();
+        this.port.setComPortTimeouts(
+                SerialPort.TIMEOUT_WRITE_BLOCKING | SerialPort.TIMEOUT_READ_BLOCKING,
+                Requestor.READ_TIMEOUT, 0);
     }
 
-    private byte[] makeRequest(String str) {
-        System.out.println("makeRequest " + str);
+    public int makeRequest(byte[] reqBuf, byte[] respBuf) {
         try {
-            byte[] reqBuffer = str.getBytes("UTF-8");
-            port.writeBytes(reqBuffer, reqBuffer.length);
-            byte[] oneByteBuffer = new byte[1];
-            ArrayList<Byte> respList = new ArrayList<Byte>();
-            while (port.bytesAvailable() > 0) {
-                port.readBytes(oneByteBuffer, 1);
-                respList.add(oneByteBuffer[0]);
-            }
-            byte[] respBuffer = new byte[respList.size()];
-            for (int i = 0; i < respList.size(); i++)
-                respBuffer[i] = respList.get(i);
-            return respBuffer;
+            System.out.println(new String(reqBuf));
+            this.port.writeBytes(reqBuf, reqBuf.length);
+            return this.port.readBytes(respBuf, respBuf.length);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return 0;
         }
     }
 
-    private void writeToArchive() throws IOException {
-        String urlString = "http://" + INCUBATOR_ARCHIVE_ADDRESS + "/archive/insert.php?";
-        urlString += "timestamp=" + data.timestamp + "&";
-        urlString += "curtemp=" + data.currentTemperature + "&";
-        urlString += "curhumid=" + data.currentHumidity + "&";
-        urlString += "needtemp=" + data.neededTemperature + "&";
-        urlString += "needhumid=" + data.neededHumidity + "&";
-        urlString += "heater=" + (data.heater ? 1 : 0) + "&";
-        urlString += "wetter=" + (data.wetter ? 1 : 0) + "&";
-        urlString += "chamber=" + data.chamber;
-
-        URL url = new URL(urlString);
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.connect();
-
-        BufferedInputStream reader = new BufferedInputStream(connection.getInputStream());
-        byte[] answer = new byte[reader.available()];
-        reader.read(answer);
-        System.out.println(Arrays.toString(data.serializeState()));
-        System.out.println(Arrays.toString(data.serializeConfig()));
-        System.out.println(new String(answer, "UTF-8"));
-
-    }
-
-    public final IncubatorData getData() {
-        return this.data;
-    }
-
-    @Override
-    public void run() {
+    public int makeRequest(String reqStr, byte[] respBuf) {
         try {
-            long time;
-            while (true) {
-                time = System.currentTimeMillis();
-                if ((time - lastRequestTime) >= 2000) {
-                    byte[] respBufferState = makeRequest("request_state\r\n");
-                    byte[] respBufferConfig = makeRequest("request_config\r\n");
-
-                    String[] stateResponse = new String(respBufferState, "UTF-8").split("\r\n");
-                    String[] configResponse = new String(respBufferConfig, "UTF-8").split("\r\n");
-
-                    IncubatorData data1 = IncubatorData.deserialize(stateResponse);
-                    IncubatorData data2 = IncubatorData.deserialize(configResponse);
-
-                    data.timestamp = new Date().getTime();
-
-                    data.currentTemperature = data1.currentTemperature;
-                    data.currentHumidity = data1.currentHumidity;
-                    data.heater = data1.heater;
-                    data.wetter = data1.wetter;
-                    data.cooler = data1.cooler;
-                    data.chamber = data1.chamber;
-                    data.uptime = data1.uptime;
-                    data.overheat = data1.overheat;
-                    data.power = data1.power;
-                    data.isChanged = data1.isChanged;
-
-                    data.neededTemperature = data2.neededTemperature;
-                    data.neededHumidity = data2.neededHumidity;
-                    data.rotationsPerDay = data2.rotationsPerDay;
-                    data.currentProgram = data2.currentProgram;
-                    data.numberOfPrograms = data2.numberOfPrograms;
-
-                    data.isCorrect = data1.isCorrect && data2.isCorrect;
-
-                    writeToArchive();
-                    lastRequestTime = System.currentTimeMillis();
-                }
-            }
+            return makeRequest(reqStr.getBytes("UTF-8"), respBuf);
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
+    }
+
+    public IncubatorState requestState() {
+        byte[] respBytes = new byte[LEN_BYTES];
+        int respLen = makeRequest("request_state\r\n", respBytes);
+        assert respLen > 0;
+
+        String[] responseString = new String(respBytes).split("\r\n");
+        IncubatorState result = IncubatorState.deserialize(responseString);
+        result.timestamp = new Date().getTime();
+        return result;
+    }
+
+    public IncubatorConfig requestConfig() {
+        byte[] respBytes = new byte[LEN_BYTES];
+        int respLen = makeRequest("request_config\r\n", respBytes);
+        assert respLen > 0;
+
+        String[] responseString = new String(respBytes).split("\r\n");
+        return IncubatorConfig.deserialize(responseString);
     }
 }

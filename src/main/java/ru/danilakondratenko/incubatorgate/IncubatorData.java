@@ -28,7 +28,18 @@ public class IncubatorData {
     public float neededTemperature, neededHumidity;
     public int rotationsPerDay, numberOfPrograms, currentProgram;
 
-    public boolean isCorrect;
+    public boolean isCorrect() {
+        if (Float.isNaN(currentTemperature))
+            return false;
+        if (Float.isNaN(currentHumidity))
+            return false;
+        if (Float.isNaN(neededTemperature))
+            return false;
+        if (Float.isNaN(neededHumidity))
+            return false;
+
+        return true;
+    }
 
     IncubatorData() {
         this.currentTemperature = NO_DATA_FLOAT;
@@ -49,7 +60,6 @@ public class IncubatorData {
         this.rotationsPerDay = NO_DATA_INT;
         this.numberOfPrograms = NO_DATA_INT;
         this.currentProgram = NO_DATA_INT;
-        this.isCorrect = true;
     }
 
     IncubatorData(boolean isCorrect) {
@@ -71,7 +81,27 @@ public class IncubatorData {
         this.rotationsPerDay = NO_DATA_INT;
         this.numberOfPrograms = NO_DATA_INT;
         this.currentProgram = NO_DATA_INT;
-        this.isCorrect = isCorrect;
+    }
+
+    IncubatorData(IncubatorState state, IncubatorConfig cfg) {
+        this.currentTemperature = state.currentTemperature;
+        this.currentHumidity = state.currentHumidity;
+        this.wetter = state.wetter;
+        this.heater = state.heater;
+        this.cooler = state.cooler;
+        this.chamber = state.chamber;
+        this.overheat = state.overheat;
+        this.uptime = state.uptime;
+        this.internet = state.internet;
+        this.power = state.power;
+        this.isChanged = state.isChanged;
+        this.timestamp = state.timestamp;
+
+        this.neededTemperature = cfg.neededTemperature;
+        this.neededHumidity = cfg.neededHumidity;
+        this.rotationsPerDay = cfg.rotationsPerDay;
+        this.numberOfPrograms = cfg.numberOfPrograms;
+        this.currentProgram = cfg.currentProgram;
     }
 
     public String[] serializeState() {
@@ -170,18 +200,9 @@ public class IncubatorData {
                 }
             }
 
-            if (Float.isNaN(result.currentTemperature))
-                result.isCorrect = false;
-            if (Float.isNaN(result.currentHumidity))
-                result.isCorrect = false;
-            if (Float.isNaN(result.neededTemperature))
-                result.isCorrect = false;
-            if (Float.isNaN(result.neededHumidity))
-                result.isCorrect = false;
-
             return result;
         } catch (Exception e) {
-            return new IncubatorData(false);
+            return new IncubatorData();
         }
     }
 }
