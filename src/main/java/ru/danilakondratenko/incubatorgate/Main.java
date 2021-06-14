@@ -110,10 +110,9 @@ public class Main {
                     is.read(reqBuf);
 
                     port.writeBytes(reqBuf, reqBuf.length);
-                    while (port.bytesAvailable() == 0)
-                        Thread.sleep(10);
-                    byte[] respBuf = new byte[port.bytesAvailable()];
-                    System.out.println("" + port.readBytes(respBuf, respBuf.length) + ", " + respBuf.length);
+                    byte[] respBuf = new byte[256];
+                    System.out.println("" +
+                            port.readBytes(respBuf, respBuf.length) + ", " + respBuf.length);
 
                     answerBuf = respBuf;
                 }
