@@ -110,7 +110,7 @@ public class Main {
                     is.read(reqBuf);
 
                     port.writeBytes(reqBuf, reqBuf.length);
-                    byte[] respBuf = new byte[256];
+                    byte[] respBuf = new byte[512];
                     System.out.println("" +
                             port.readBytes(respBuf, respBuf.length) + ", " + respBuf.length);
 
