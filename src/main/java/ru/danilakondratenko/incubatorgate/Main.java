@@ -110,6 +110,7 @@ public class Main {
                     is.read(reqBuf);
 
                     port.writeBytes(reqBuf, reqBuf.length);
+<<<<<<< HEAD
                     InputStream port_is = port.getInputStream();
                     byte[] respBuf = new byte[512];
                     int n = 0, inc = 0;
@@ -118,6 +119,9 @@ public class Main {
                         if (inc != -1)
                             respBuf[n++] = (byte)inc;
                     }
+=======
+                    byte[] respBuf = new byte[256];
+>>>>>>> parent of 356a883 (Поправка к предыдущему изменению)
                     System.out.println("" +
                             port.readBytes(respBuf, n) + ", " + respBuf.length);
 
