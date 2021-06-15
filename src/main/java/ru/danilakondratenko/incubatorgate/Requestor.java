@@ -3,6 +3,7 @@ package ru.danilakondratenko.incubatorgate;
 import com.fazecast.jSerialComm.*;
 
 import java.util.Date;
+import java.util.Scanner;
 
 public class Requestor {
     public static final int BAUDRATE = 9600;
@@ -24,9 +25,48 @@ public class Requestor {
                 Requestor.READ_TIMEOUT, 0);
     }
 
-    public synchronized int makeRequest(byte[] reqBuf, byte[] respBuf) {
+    private void getSerialPort() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        if (ports.length == 1) {
+            this.portDescriptor = ports[0].getSystemPortName();
+            this.port = ports[0];
+            return;
+        }
+        if (ports.length == 0) {
+            this.portDescriptor = null;
+            this.port = null;
+            return;
+        }
+
+        int i = 0;
+        for (SerialPort port : ports) {
+            System.out.println("[" + i + "] " + port.getSystemPortName());
+            i++;
+        }
+        System.out.print("Select port: ");
+        Scanner scanner = new Scanner(System.in);
+        int n_port = scanner.nextInt();
+
+        this.portDescriptor = ports[n_port].getSystemPortName();
+        this.port = ports[n_port];
+    }
+
+    public synchronized void checkPort() {
         try {
-            System.out.println(new String(reqBuf));
+            if (this.port == null || !this.port.isOpen()) {
+                getSerialPort();
+                if (this.port != null)
+                    this.port.openPort();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized int makeRequest(byte[] reqBuf, byte[] respBuf) {
+        if (this.port == null)
+            return 0;
+        try {
             this.port.writeBytes(reqBuf, reqBuf.length);
             return this.port.readBytes(respBuf, respBuf.length);
         } catch (Exception e) {

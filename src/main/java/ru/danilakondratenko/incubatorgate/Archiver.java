@@ -43,9 +43,6 @@ public class Archiver extends Thread {
         BufferedInputStream reader = new BufferedInputStream(connection.getInputStream());
         byte[] answer = new byte[reader.available()];
         reader.read(answer);
-        System.out.println(Arrays.toString(data.serializeState()));
-        System.out.println(Arrays.toString(data.serializeConfig()));
-        System.out.println(new String(answer, "UTF-8"));
     }
 
     @Override
@@ -55,6 +52,7 @@ public class Archiver extends Thread {
             while (true) {
                 time = System.currentTimeMillis();
                 if ((time - lastRequestTime) >= 2000) {
+                    requestor.checkPort();
                     IncubatorState state = requestor.requestState();
                     IncubatorConfig cfg = requestor.requestConfig();
 

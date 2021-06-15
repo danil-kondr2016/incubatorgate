@@ -1,12 +1,8 @@
 package ru.danilakondratenko.incubatorgate;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Scanner;
 import com.fazecast.jSerialComm.*;
 import com.sun.net.httpserver.*;
@@ -49,8 +45,6 @@ public class Main {
 
             HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
             server.createContext("/", new HttpRequestHandler());
-            server.createContext("/index.html", new HttpRequestHandler());
-            server.createContext("/control", new HttpRequestHandler());
             server.start();
         } catch (Exception e) {
 	        e.printStackTrace();
@@ -101,10 +95,10 @@ public class Main {
                 answerLen = answerBuf.length;
                 httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
                 httpExchange.sendResponseHeaders(200, answerLen);
-                os.write(answerBuf, 0, answerLen);
             } else if (path.compareTo("/control") == 0) {
                 if (method.compareTo("GET") == 0) {
                     answerBuf = "method_get\r\n".getBytes();
+                    answerLen = answerBuf.length;
                 } else if (method.compareTo("POST") == 0) {
                     byte[] reqBuf = new byte[is.available()];
                     is.read(reqBuf);
@@ -114,13 +108,13 @@ public class Main {
                 }
                 httpExchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
                 httpExchange.sendResponseHeaders(200, answerLen);
-                os.write(answerBuf, 0, answerLen);
             } else {
                 answerBuf = ERROR_404_PAGE.getBytes();
                 answerLen = answerBuf.length;
+                httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
                 httpExchange.sendResponseHeaders(404, answerLen);
-                os.write(answerBuf);
             }
+            os.write(answerBuf, 0, answerLen);
             os.flush();
             os.close();
         }
