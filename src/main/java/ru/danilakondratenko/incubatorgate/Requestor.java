@@ -18,6 +18,10 @@ public class Requestor {
     Requestor(String portDescriptor) {
         this.portDescriptor = portDescriptor;
         this.port = SerialPort.getCommPort(this.portDescriptor);
+        openPort();
+    }
+
+    private void openPort() {
         if (!this.port.isOpen())
             this.port.openPort();
         this.port.setComPortTimeouts(
@@ -56,7 +60,7 @@ public class Requestor {
             if (this.port == null || !this.port.isOpen()) {
                 getSerialPort();
                 if (this.port != null)
-                    this.port.openPort();
+                    openPort();
             }
         } catch (Exception e) {
             e.printStackTrace();
