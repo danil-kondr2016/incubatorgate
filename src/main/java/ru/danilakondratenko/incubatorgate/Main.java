@@ -108,6 +108,11 @@ public class Main {
                 }
                 httpExchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
                 httpExchange.sendResponseHeaders(200, answerLen);
+            } else if (path.compareTo("/archive_address") == 0) {
+                answerBuf = (Archiver.INCUBATOR_ARCHIVE_ADDRESS + "\r\n").getBytes();
+                answerLen = answerBuf.length;
+                httpExchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
+                httpExchange.sendResponseHeaders(200, answerLen);
             } else {
                 answerBuf = ERROR_404_PAGE.getBytes();
                 answerLen = answerBuf.length;

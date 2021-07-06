@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.ArrayList;
 
 public class Archiver extends Thread {
-    private static final String INCUBATOR_ARCHIVE_ADDRESS = "185.26.121.126";
+    public static final String INCUBATOR_ARCHIVE_ADDRESS = "185.26.121.126";
 
     private Requestor requestor;
     private long lastRequestTime;
