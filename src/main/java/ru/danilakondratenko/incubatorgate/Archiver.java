@@ -24,7 +24,18 @@ public class Archiver extends Thread {
         this.start();
     }
 
-    private void writeToArchive(IncubatorData data) throws IOException {
+    private void writeToArchive(IncubatorData _data) throws IOException {
+        IncubatorData data = new IncubatorData(_data);
+        if (!data.isCorrect()) {
+          if (Float.isNaN(data.currentTemperature))
+            data.currentTemperature = 0;
+          if (Float.isNaN(data.currentHumidity))
+            data.currentHumidity = 0;
+          if (Float.isNaN(data.neededTemperature))
+            data.neededTemperature = 0;
+          if (Float.isNaN(data.neededHumidity))
+            data.neededHumidity = 0;
+        }
         String urlString = "http://" + INCUBATOR_ARCHIVE_ADDRESS + "/archive/insert.php?";
         urlString += "timestamp=" + data.timestamp + "&";
         urlString += "curtemp=" + data.currentTemperature + "&";

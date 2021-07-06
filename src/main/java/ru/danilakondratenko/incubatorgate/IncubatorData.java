@@ -62,27 +62,6 @@ public class IncubatorData {
         this.currentProgram = NO_DATA_INT;
     }
 
-    IncubatorData(boolean isCorrect) {
-        this.currentTemperature = NO_DATA_FLOAT;
-        this.currentHumidity = NO_DATA_FLOAT;
-        this.wetter = false;
-        this.heater = false;
-        this.cooler = false;
-        this.chamber = CHAMBER_NEUTRAL;
-        this.overheat = false;
-        this.uptime = 0;
-        this.internet = false;
-        this.power = false;
-        this.isChanged = false;
-        this.timestamp = 0;
-
-        this.neededTemperature = NO_DATA_FLOAT;
-        this.neededHumidity = NO_DATA_FLOAT;
-        this.rotationsPerDay = NO_DATA_INT;
-        this.numberOfPrograms = NO_DATA_INT;
-        this.currentProgram = NO_DATA_INT;
-    }
-
     IncubatorData(IncubatorState state, IncubatorConfig cfg) {
         this.currentTemperature = state.currentTemperature;
         this.currentHumidity = state.currentHumidity;
@@ -102,6 +81,27 @@ public class IncubatorData {
         this.rotationsPerDay = cfg.rotationsPerDay;
         this.numberOfPrograms = cfg.numberOfPrograms;
         this.currentProgram = cfg.currentProgram;
+    }
+
+    IncubatorData(IncubatorData data) {
+        this.currentTemperature = data.currentTemperature;
+        this.currentHumidity = data.currentHumidity;
+        this.wetter = data.wetter;
+        this.heater = data.heater;
+        this.cooler = data.cooler;
+        this.chamber = data.chamber;
+        this.overheat = data.overheat;
+        this.uptime = data.uptime;
+        this.internet = data.internet;
+        this.power = data.power;
+        this.isChanged = data.isChanged;
+        this.timestamp = data.timestamp;
+
+        this.neededTemperature = data.neededTemperature;
+        this.neededHumidity = data.neededHumidity;
+        this.rotationsPerDay = data.rotationsPerDay;
+        this.numberOfPrograms = data.numberOfPrograms;
+        this.currentProgram = data.currentProgram;
     }
 
     public String[] serializeState() {
