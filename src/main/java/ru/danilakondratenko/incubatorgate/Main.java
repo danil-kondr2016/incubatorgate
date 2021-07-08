@@ -10,6 +10,7 @@ import com.sun.net.httpserver.*;
 
 public class Main {
     public static Requestor requestor;
+    public static Requestor lightsControlRequestor;
 
     public static String getSerialPortDescriptor() {
         SerialPort[] ports = SerialPort.getCommPorts();
@@ -37,9 +38,34 @@ public class Main {
 	        String portDescriptor = getSerialPortDescriptor();
             if (portDescriptor != null) {
                 requestor = new Requestor(portDescriptor);
-                new Archiver(requestor);
+                if (!requestor.isIncubatorLightController())
+                    new Archiver(requestor);
+                else {
+                    System.out.println("Error: incorrect serial port");
+                    System.exit(0);
+                }
             } else {
                 System.out.println("Error: serial port not found");
+                System.exit(0);
+            }
+
+            System.out.println("Determining lights controller...");
+            SerialPort[] ports = SerialPort.getCommPorts();
+            for (SerialPort port : ports) {
+                if (port.getSystemPortName().compareTo(portDescriptor) == 0)
+                    continue;
+                Requestor test = new Requestor(port.getSystemPortName());
+                if (test.isIncubatorLightController()) {
+                    System.out.printf("Lights controller found: port %s\n", port.getSystemPortName());
+                    lightsControlRequestor = test;
+                    break;
+                } else {
+                    lightsControlRequestor = null;
+                }
+            }
+
+            if (lightsControlRequestor == null) {
+                System.out.println("Error: lights controller not found");
                 System.exit(0);
             }
 
@@ -104,7 +130,12 @@ public class Main {
                     is.read(reqBuf);
 
                     answerBuf = new byte[Requestor.LEN_BYTES];
-                    answerLen = requestor.makeRequest(reqBuf, answerBuf);
+                    String[] reqString = new String(reqBuf).split("\r\n");
+                    if (reqString[0].startsWith("lights_") || reqString[0].equals("reset") == 0) {
+                        answerLen = lightsControlRequestor.makeRequest(reqBuf, answerBuf);
+                    } else {
+                        answerLen = requestor.makeRequest(reqBuf, answerBuf);
+                    }
                 }
                 httpExchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
                 httpExchange.sendResponseHeaders(200, answerLen);

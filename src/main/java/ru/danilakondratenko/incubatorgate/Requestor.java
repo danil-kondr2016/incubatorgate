@@ -107,4 +107,13 @@ public class Requestor {
         String[] responseString = new String(respBytes).split("\r\n");
         return IncubatorConfig.deserialize(responseString);
     }
+
+    public synchronized boolean isIncubatorLightController() {
+        byte[] respBytes = new byte[LEN_BYTES];
+        int respLen = makeRequest("lightscontrol\r\n", respBytes);
+        assert respLen > 0;
+
+        String[] responseString = new String(respBytes).split("\r\n");
+        return (responseString[0].compareTo("lightscontrol") == 0);
+    }
 }
