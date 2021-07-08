@@ -6,8 +6,8 @@ import java.util.Date;
 import java.util.Scanner;
 
 public class Requestor {
-    public static final int BAUDRATE = 9600;
-    public static final int READ_TIMEOUT = 200;
+    public static final int BAUDRATE = 19200;
+    public static final int READ_TIMEOUT = 100;
     public static final int STOP_BIT = 1;
     public static final int BYTE_FRAME = 8 + 1 + STOP_BIT;
     public static final int LEN_BYTES = (READ_TIMEOUT * (BAUDRATE / BYTE_FRAME)) / 1000;
