@@ -22,6 +22,7 @@ public class Requestor {
     }
 
     private void openPort() {
+        this.port.setBaudRate(BAUDRATE);
         if (!this.port.isOpen())
             this.port.openPort();
         this.port.setComPortTimeouts(
