@@ -52,7 +52,8 @@ public class IncubatorControl extends Thread {
     public void run() {
         while (true) {
             if (System.currentTimeMillis() - lastRequestTime >= 2000) {
-                checkRequestors();
+                if (!this.incubatorRequestor.portIsOpen() || !this.incubatorRequestor.portIsOpen())
+                    checkRequestors();
             }
         }
     }
