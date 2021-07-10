@@ -9,65 +9,12 @@ import com.sun.net.httpserver.*;
 
 
 public class Main {
-    public static Requestor requestor;
-    public static Requestor lightsControlRequestor;
-
-    public static String getSerialPortDescriptor() {
-        SerialPort[] ports = SerialPort.getCommPorts();
-        if (ports.length == 1) {
-            return ports[0].getSystemPortName();
-        }
-        if (ports.length == 0) {
-            return null;
-        }
-        int i = 0;
-        for (SerialPort port : ports) {
-            System.out.println("[" + i + "] " + port.getSystemPortName());
-            i++;
-        }
-
-        System.out.print("Select port: ");
-        Scanner scanner = new Scanner(System.in);
-        int n_port = scanner.nextInt();
-
-        return ports[n_port].getSystemPortName();
-    }
+    public static IncubatorControl control;
 
     public static void main(String[] args) {
 	    try {
-	        String portDescriptor = getSerialPortDescriptor();
-            if (portDescriptor != null) {
-                requestor = new Requestor(portDescriptor);
-                if (!requestor.isIncubatorLightController())
-                    new Archiver(requestor);
-                else {
-                    System.out.println("Error: incorrect serial port");
-                    System.exit(0);
-                }
-            } else {
-                System.out.println("Error: serial port not found");
-                System.exit(0);
-            }
-
-            System.out.println("Determining lights controller...");
-            SerialPort[] ports = SerialPort.getCommPorts();
-            for (SerialPort port : ports) {
-                if (port.getSystemPortName().compareTo(portDescriptor) == 0)
-                    continue;
-                Requestor test = new Requestor(port.getSystemPortName());
-                if (test.isIncubatorLightController()) {
-                    System.out.printf("Lights controller found: port %s\n", port.getSystemPortName());
-                    lightsControlRequestor = test;
-                    break;
-                } else {
-                    lightsControlRequestor = null;
-                }
-            }
-
-            if (lightsControlRequestor == null) {
-                System.out.println("Error: lights controller not found");
-                System.exit(0);
-            }
+	        control = new IncubatorControl();
+	        new Archiver(control.incubatorRequestor);
 
             HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
             server.createContext("/", new HttpRequestHandler());
@@ -133,10 +80,10 @@ public class Main {
                     String reqString = new String(reqBuf);
                     System.out.println("reqString = " + reqString);
                     if (reqString.startsWith("lights_") || reqString.startsWith("reset")) {
-                        answerLen = lightsControlRequestor.makeRequest(reqBuf, answerBuf);
+                        answerLen = control.lightsControlRequestor.makeRequest(reqBuf, answerBuf);
                         System.out.println("Lights control");
                     } else {
-                        answerLen = requestor.makeRequest(reqBuf, answerBuf);
+                        answerLen = control.incubatorRequestor.makeRequest(reqBuf, answerBuf);
                         System.out.println("Incubator");
                     }
                     System.out.println("answer = " + new String(answerBuf));

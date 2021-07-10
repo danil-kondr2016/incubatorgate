@@ -21,13 +21,19 @@ public class Requestor {
         openPort();
     }
 
-    private void openPort() {
+    public void openPort() {
         this.port.setBaudRate(BAUDRATE);
         if (!this.port.isOpen())
             this.port.openPort();
         this.port.setComPortTimeouts(
                 SerialPort.TIMEOUT_WRITE_BLOCKING | SerialPort.TIMEOUT_READ_BLOCKING,
                 Requestor.READ_TIMEOUT, 0);
+    }
+
+    public boolean portIsOpen() {
+        if (this.port == null)
+            return false;
+        return this.port.isOpen();
     }
 
     private void getSerialPort() {
@@ -107,14 +113,5 @@ public class Requestor {
 
         String[] responseString = new String(respBytes).split("\r\n");
         return IncubatorConfig.deserialize(responseString);
-    }
-
-    public synchronized boolean isIncubatorLightController() {
-        byte[] respBytes = new byte[LEN_BYTES];
-        int respLen = makeRequest("lightscontrol\r\n", respBytes);
-        assert respLen > 0;
-
-        String[] responseString = new String(respBytes).split("\r\n");
-        return (responseString[0].compareTo("lightscontrol") == 0);
     }
 }
