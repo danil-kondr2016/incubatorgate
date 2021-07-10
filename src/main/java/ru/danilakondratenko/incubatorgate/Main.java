@@ -131,6 +131,7 @@ public class Main {
 
                     answerBuf = new byte[Requestor.LEN_BYTES];
                     String[] reqString = new String(reqBuf).split("\r\n");
+                    System.out.println("reqString: " + new String(reqBuf));
                     if (reqString[0].startsWith("lights_") || reqString[0].compareTo("reset") == 0) {
                         answerLen = lightsControlRequestor.makeRequest(reqBuf, answerBuf);
                     } else {
