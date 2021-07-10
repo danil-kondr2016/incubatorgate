@@ -131,11 +131,15 @@ public class Main {
 
                     answerBuf = new byte[Requestor.LEN_BYTES];
                     String reqString = new String(reqBuf);
+                    System.out.println("reqString = " + reqString);
                     if (reqString.startsWith("lights_") || reqString.startsWith("reset")) {
                         answerLen = lightsControlRequestor.makeRequest(reqBuf, answerBuf);
+                        System.out.println("Lights control");
                     } else {
                         answerLen = requestor.makeRequest(reqBuf, answerBuf);
+                        System.out.println("Incubator");
                     }
+                    System.out.println("answer = " + new String(answerBuf));
                 }
                 httpExchange.getResponseHeaders().add("Content-Type", "text/plain; charset=utf-8");
                 httpExchange.sendResponseHeaders(200, answerLen);
