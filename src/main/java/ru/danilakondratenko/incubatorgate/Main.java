@@ -130,9 +130,8 @@ public class Main {
                     is.read(reqBuf);
 
                     answerBuf = new byte[Requestor.LEN_BYTES];
-                    String[] reqString = new String(reqBuf).split("\r\n");
-                    System.out.println("reqString: " + new String(reqBuf));
-                    if (reqString[0].startsWith("lights_") || reqString[0].compareTo("reset") == 0) {
+                    String reqString = new String(reqBuf);
+                    if (reqString.startsWith("lights_") || reqString.startsWith("reset")) {
                         answerLen = lightsControlRequestor.makeRequest(reqBuf, answerBuf);
                     } else {
                         answerLen = requestor.makeRequest(reqBuf, answerBuf);
