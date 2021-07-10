@@ -29,22 +29,18 @@ public class IncubatorControl extends Thread {
             System.out.println("Error: can't determine serial ports");
             System.exit(0);
         }
-        this.lightsControlRequestor = null;
-        this.incubatorRequestor = null;
+        this.lightsControlRequestor.port = null;
+        this.incubatorRequestor.port = null;
         for (SerialPort port : ports) {
             System.out.println("Test port: " + port.getSystemPortName());
             Requestor test = new Requestor(port.getSystemPortName());
             if (isIncubatorLightController(test)) {
-                this.lightsControlRequestor = test;
+                this.lightsControlRequestor.port = test.port;
                 System.out.println("Lights control: " + port.getSystemPortName());
             } else {
-                this.incubatorRequestor = test;
+                this.incubatorRequestor.port = test.port;
                 System.out.println("Requestor: " + port.getSystemPortName());
             }
-        }
-        if (this.incubatorRequestor == null || this.lightsControlRequestor == null) {
-            System.out.println("Error: serial ports not found");
-            System.exit(0);
         }
     }
 

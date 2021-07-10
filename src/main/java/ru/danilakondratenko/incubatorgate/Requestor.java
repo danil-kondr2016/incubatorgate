@@ -13,7 +13,7 @@ public class Requestor {
     public static final int LEN_BYTES = (READ_TIMEOUT * (BAUDRATE / BYTE_FRAME)) / 1000;
 
     private String portDescriptor;
-    private SerialPort port;
+    public SerialPort port;
 
     Requestor(String portDescriptor) {
         this.portDescriptor = portDescriptor;
