@@ -16,8 +16,8 @@ public class IncubatorControl extends Thread {
     private long lastRequestTime;
 
     IncubatorControl() {
-        this.lastRequestTime = System.currentTimeMillis();
         checkRequestors();
+        this.lastRequestTime = System.currentTimeMillis();
 
         this.setDaemon(true);
         this.start();
