@@ -63,7 +63,6 @@ public class Archiver extends Thread {
             while (true) {
                 time = System.currentTimeMillis();
                 if ((time - lastRequestTime) >= 2000) {
-                    requestor.checkPort();
                     IncubatorState state = requestor.requestState();
                     IncubatorConfig cfg = requestor.requestConfig();
 

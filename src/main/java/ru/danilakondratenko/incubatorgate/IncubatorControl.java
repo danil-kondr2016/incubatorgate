@@ -32,11 +32,14 @@ public class IncubatorControl extends Thread {
         this.lightsControlRequestor = null;
         this.incubatorRequestor = null;
         for (SerialPort port : ports) {
+            System.out.println("Test port: " + port.getSystemPortName());
             Requestor test = new Requestor(port.getSystemPortName());
             if (isIncubatorLightController(test)) {
                 this.lightsControlRequestor = test;
+                System.out.println("Lights control: " + port.getSystemPortName());
             } else {
                 this.incubatorRequestor = test;
+                System.out.println("Requestor: " + port.getSystemPortName());
             }
         }
         if (this.incubatorRequestor == null || this.lightsControlRequestor == null) {
@@ -49,25 +52,7 @@ public class IncubatorControl extends Thread {
     public void run() {
         while (true) {
             if (System.currentTimeMillis() - lastRequestTime >= 2000) {
-                SerialPort[] ports = SerialPort.getCommPorts();
-                if (ports.length != 2) {
-                    System.out.println("Error: can't determine serial ports");
-                    System.exit(0);
-                }
-                lightsControlRequestor = null;
-                incubatorRequestor = null;
-                for (SerialPort port : ports) {
-                    Requestor test = new Requestor(port.getSystemPortName());
-                    if (isIncubatorLightController(test)) {
-                        lightsControlRequestor = test;
-                    } else {
-                        incubatorRequestor = test;
-                    }
-                }
-                if (incubatorRequestor == null || lightsControlRequestor == null) {
-                    System.out.println("Error: serial ports not found");
-                    System.exit(0);
-                }
+                checkRequestors();
             }
         }
     }
