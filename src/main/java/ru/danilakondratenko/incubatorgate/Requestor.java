@@ -15,6 +15,11 @@ public class Requestor {
     private String portDescriptor;
     public SerialPort port;
 
+    Requestor() {
+        this.portDescriptor = null;
+        this.port = null;
+    }
+
     Requestor(String portDescriptor) {
         this.portDescriptor = portDescriptor;
         this.port = SerialPort.getCommPort(this.portDescriptor);
@@ -22,6 +27,8 @@ public class Requestor {
     }
 
     public void openPort() {
+        if (this.port == null)
+            return;
         this.port.setBaudRate(BAUDRATE);
         if (!this.port.isOpen())
             this.port.openPort();

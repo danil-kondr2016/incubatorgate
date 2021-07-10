@@ -16,6 +16,8 @@ public class IncubatorControl extends Thread {
     private long lastRequestTime;
 
     IncubatorControl() {
+        this.incubatorRequestor = new Requestor();
+        this.lightsControlRequestor = new Requestor();
         checkRequestors();
         this.lastRequestTime = System.currentTimeMillis();
 
